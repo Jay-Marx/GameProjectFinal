@@ -99,13 +99,13 @@ public:
 	{
 
 	};
-	Party(Unit a, Unit b, Unit c, Unit d)
+	Party(Unit a, Unit b, Unit c, Unit d, Unit Enemy1)
 	{
 		u[0] = a;
 		u[1] = b;
 		u[2] = c;
 		u[3] = d;
-
+		Enemy = Enemy1;
 	};
 	void printPartyCombatInfo()
 	{
@@ -134,6 +134,7 @@ public:
 				if (s.damageType == 1) {
 					//deals magic damage
 					damage = u[activeUnit].M_ATK + s.damageBonus - Enemy.M_DEF;
+					damage = max(damage, 0);
 					Enemy.HP_CURR = Enemy.HP_CURR - damage;
 			
 
@@ -142,6 +143,7 @@ public:
 				{// deals physical damage
 					cout << Enemy.HP_CURR;
 					damage = u[activeUnit].ATK + s.damageBonus - Enemy.DEF;
+					damage = max(damage, 0);
 					Enemy.HP_CURR = Enemy.HP_CURR - damage;
 					cout << Enemy.HP_CURR;
 
@@ -157,7 +159,7 @@ public:
 
 		cout << name1 << " dealt " << damage << "!\n";
 		
-		return Party(u[0], u[1], u[2], u[3]);
+		return Party(u[0], u[1], u[2], u[3], Enemy);
 	}
 };
 // HP_MAX, HP_CURR, ATK, M ATK, DEF, MDEF, LUK, SP_MAX, SP_CURR, charID
