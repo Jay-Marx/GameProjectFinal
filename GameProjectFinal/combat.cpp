@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <windows.h>
 #include <conio.h>
+#include <cstdlib>
 
 using namespace std;
 
@@ -29,6 +30,7 @@ public:
 	int SP_COST;
 	int specialThing;
 	//to be differenciated later, different things can be implimented this way
+	string desc;
 	Skill()
 	{
 		name = "shall not be named";
@@ -37,9 +39,10 @@ public:
 		damageBonus = 0;
 		useCase = 0;
 		SP_COST = 0;
+		desc = "undescribable";
 	};
 
-	Skill(int dType, int coolThing, int damageBonus1, int heal, int SP_COSTI, string Name)
+	Skill(int dType, int coolThing, int damageBonus1, int heal, int SP_COSTI, string Name, string Description)
 	{
 		name = Name;
 		specialThing = coolThing;
@@ -47,6 +50,7 @@ public:
 		damageBonus = damageBonus1;
 		useCase = heal;
 		SP_COST = SP_COSTI;
+		desc = Description;
 	};
 
 };
@@ -62,12 +66,14 @@ public:
 	int DEF;
 	int M_DEF;
 	int LUK;
+	int EXP;
+	int LVL;
 	string name;
 	Skill s[4];
 	Unit()
 	{
 	};
-	Unit(int hpSet, int spSet, int baseATK, int baseM_ATK, int base_DEF, int base_M_DEF, int base_LUK, string name1)
+	Unit(int hpSet, int spSet, int baseATK, int baseM_ATK, int base_DEF, int base_M_DEF, int base_LUK, string name1, int lvel, int expp)
 	{
 		HP_MAX = hpSet;
 		HP_CURR = hpSet;
@@ -78,6 +84,8 @@ public:
 		name = name1;
 		SP_MAX = spSet;
 		SP_CURR = spSet;
+		LVL = lvel;
+		EXP = expp;
 	};
 	void setName(string s)
 	{
@@ -87,6 +95,52 @@ public:
 	{
 		cout << name << "\nHP: " << s.HP_CURR << "\n";
 	}
+	void gainEXP(Unit a)
+	{
+		EXP = (LVL - a.LVL) * a.EXP;
+		while (EXP >= 100)
+		{
+		  	srand(time(NULL));
+	int critNumber = rand() % 2*LUK + 1;
+
+	if (critNumber > ATK) {
+		ATK++;
+		cout << name << " gained 1 ATK.\n";
+
+		}
+	if (critNumber > M_ATK) {
+		M_ATK++;
+		cout << name << " gained 1 MGC.\n";
+	}
+	if (critNumber > DEF) {
+		DEF++;
+		cout << name << " gained 1 DEF.\n";
+
+	}
+	if (critNumber > M_DEF) {
+		M_DEF++;
+		cout << name << " gained 1 RES.\n";
+	}
+	if (critNumber > LUK) {
+		LUK++;
+		cout << name << " gained 1 LUK.\n";
+
+	}
+	if (critNumber > SP_MAX *1.5) {
+		SP_MAX = SP_MAX + 10;
+		cout << name << " gained 10 MAX SP.\n";
+
+	}
+	if (critNumber > HP_MAX *1.2) {
+		HP_MAX = HP_MAX + (HP_MAX)/10;
+		cout << name << " gained "<< (HP_MAX) / 10<< " MAX HP.\n";
+
+	}
+		
+	
+	}
+
+	}
 
 };
 
@@ -95,17 +149,18 @@ class Party
 public:
 	Unit u[4];
 	Unit Enemy;
+	
 	Party()
 	{
 
 	};
-	Party(Unit a, Unit b, Unit c, Unit d)
+	Party(Unit a, Unit b, Unit c, Unit d, Unit Enemy1)
 	{
 		u[0] = a;
 		u[1] = b;
 		u[2] = c;
 		u[3] = d;
-
+		Enemy = Enemy1;
 	};
 	void printPartyCombatInfo()
 	{
@@ -121,6 +176,7 @@ public:
 		cout << partyCombatInfo[2];
 		cout << partyCombatInfo[3];
 	}
+
 	Party useSkill(Skill s, int activeUnit) {
 		int damage = 0; //to be displayed afterwards.
 		Unit t = u[activeUnit];
@@ -134,16 +190,18 @@ public:
 				if (s.damageType == 1) {
 					//deals magic damage
 					damage = u[activeUnit].M_ATK + s.damageBonus - Enemy.M_DEF;
+					damage = max(damage, 1);
 					Enemy.HP_CURR = Enemy.HP_CURR - damage;
 			
 
 				}
 				else
 				{// deals physical damage
-					cout << Enemy.HP_CURR;
+			
 					damage = u[activeUnit].ATK + s.damageBonus - Enemy.DEF;
+					damage = max(damage, 1);
 					Enemy.HP_CURR = Enemy.HP_CURR - damage;
-					cout << Enemy.HP_CURR;
+				
 
 				}
 
@@ -157,7 +215,75 @@ public:
 
 		cout << name1 << " dealt " << damage << "!\n";
 		
-		return Party(u[0], u[1], u[2], u[3]);
+		return Party(u[0], u[1], u[2], u[3], Enemy);
+	}
+};
+
+class Item {
+public:
+	string name;
+	string desc;
+	int uses;
+	int changeInStat;
+	//0 for HP_MAX, 1 for HP_CURR, 2 for ATK, 3 for M_ATK, 4 for DEF, 5 for M_DEF, 6 for LUK, 7 for SP_MAX, 8 for SP_CURR
+	int magnitude;
+	//how much does it change the stat by?
+	Item()
+	{
+		name = "";
+		desc = ""; 
+		uses = 0;
+		changeInStat = 0;
+		magnitude = 0;
+	}
+	void destroyItem()
+	{
+		name = "";
+		desc = "";
+		uses = 0;
+		changeInStat = 0;
+		magnitude = 0;
+	}
+	Party useItem(int unit, Party p)
+	{
+		switch (changeInStat) {
+		case 0:
+			p.u[unit].HP_MAX = p.u[unit].HP_MAX + magnitude;
+			p.u[unit].HP_CURR = p.u[unit].HP_CURR + magnitude;
+		case 1:
+
+			p.u[unit].HP_CURR = min(p.u[unit].HP_CURR + magnitude, p.u[unit].HP_MAX);
+
+		case 2:
+			p.u[unit].ATK = p.u[unit].ATK + magnitude;
+
+		case 3:
+			p.u[unit].M_ATK = p.u[unit].M_ATK + magnitude;
+
+		case 4: 
+			p.u[unit].DEF = p.u[unit].DEF + magnitude;
+
+		case 5:
+			p.u[unit].M_DEF = p.u[unit].M_DEF + magnitude;
+
+		case 6: 
+			p.u[unit].LUK = p.u[unit].LUK + magnitude;
+
+		case 7: 
+			p.u[unit].SP_CURR = p.u[unit].SP_CURR + magnitude;
+			p.u[unit].SP_MAX = p.u[unit].SP_MAX + magnitude;
+
+		case 8:
+			p.u[unit].SP_CURR = min(p.u[unit].SP_CURR + magnitude, p.u[unit].SP_MAX);
+
+		default:
+			return p;
+		}
+		if (uses == 0)
+		{
+			destroyItem();
+		}
+		return p;
 	}
 };
 // HP_MAX, HP_CURR, ATK, M ATK, DEF, MDEF, LUK, SP_MAX, SP_CURR, charID
@@ -177,20 +303,46 @@ char combatArena[100][100] = {
 
 Party attack(Party p, int activeUnit)
 {
+	
+	int damage = 1;
+
+	damage = p.u[activeUnit].ATK  - p.Enemy.DEF;
+	damage = max(damage, 1);
+
+	srand(time(NULL));
+	int critNumber = rand() % 100 + 1;
+
+	if (critNumber > 90) {
+		damage = damage * 3;
+		cout << p.u[activeUnit].name << " critically strikes for " << damage << " damage!\n";
+		p.Enemy.HP_CURR = p.Enemy.HP_CURR - damage;
+		return p;
+	}
+
+	p.Enemy.HP_CURR = p.Enemy.HP_CURR - damage;
+	cout << p.u[activeUnit].name << " deals " << damage << " damage!\n";
+
 	return p;
 }
 
 Party skill(Party p, int activeUnit)
 {
 	Unit a = p.u[activeUnit];
-	cout << a.name << " can use: 1:" << a.s[0].name << " 2:" << a.s[1].name << " 3:" << a.s[2].name << " 4:" << a.s[3].name;
+	cout << a.name << " can use: \n1:" << a.s[0].name << " 2:" << a.s[1].name << " 3:" << a.s[2].name << " 4:" << a.s[3].name <<"\n";
+	
+	for (int i = 0; i < 4; i++)
+	{
+		cout << a.s[i].desc<<" ";
+	}
 	int pInput3 = 1;
 	scanf_s("%d", &pInput3);
 	return p.useSkill(p.u[activeUnit].s[pInput3-1], activeUnit);
 }
 
-void item()
+Party item(Party p, int activeUnit)
 {
+	
+	return p;
 
 }
 
@@ -217,11 +369,14 @@ Party playerTurn(int activeUnit, Party p) {
 		return p;
 
 	case 3:
-		item();
+		p = item(p, activeUnit);
 		return p;
 
 	case 4:
 		run();
+		return p;
+
+	default:
 		return p;
 	}
 
@@ -300,6 +455,8 @@ Party loadParty()
 			p.u[i].DEF = atoi(content[i][7].c_str());
 			p.u[i].M_DEF = atoi(content[i][8].c_str());
 			p.u[i].LUK = atoi(content[i][9].c_str());
+			p.u[i].LVL = atoi(content[i][10].c_str());
+			p.u[i].EXP = atoi(content[i][11].c_str());
 		}
 
 		cout << "\n";
@@ -335,7 +492,7 @@ Party loadParty()
 		int j = 0;
 		for (int i = 0;i < 12;i++)
 		{
-				Skill s(atoi(content[i][0].c_str()), atoi(content[i][1].c_str()), atoi(content[i][2].c_str()), atoi(content[i][3].c_str()), atoi(content[0][4].c_str()), content[i][5]);
+				Skill s(atoi(content[i][0].c_str()), atoi(content[i][1].c_str()), atoi(content[i][2].c_str()), atoi(content[i][3].c_str()), atoi(content[0][4].c_str()), content[i][5], content[i][6]);
 				p.u[i/4].s[j] = s;
 				j++;
 				if (j == 4)

@@ -1,16 +1,16 @@
-0,0,5,0,2,Power Strike
-0,0,25,0,2,Elite Cut
-0,0,0,10,0,Free Deal
-0,0,0,0,2,Horse Shit
-0,0,5,0,2,Power Striker
-0,0,25,0,2,Elite Cuts
-0,0,0,10,0,Free Deals
-0,0,0,0,2,Cutters
-0,0,5,0,2,Power Strike1
-0,0,25,0,2,Elite Cut2
-0,0,0,10,0,Free Deal3
-0,0,0,0,2,Horse Shit4
-0,0,5,0,2,Power Strike5
-0,0,25,0,2,Elite Cut0
-0,0,0,10,0,Free Deal2
-0,0,0,0,2,Horse Shit1
+0,0,5,0,2,Power Strike, SP: 2 DMG +5
+0,0,25,0,5,Elite Cut,SP: 5 DMG +25
+0,0,10,0,0,Free Deal,SP: 0 DMG +10
+0,0,0,0,2,Bad Skill,SP: 2 DMG +0
+0,0,5,0,2,Power Striker, s
+0,0,25,0,2,Elite Cuts,s
+0,0,0,10,0,Free Deals,s
+0,0,0,0,2,Cutters,s
+0,0,5,0,2,Power Strike1,s
+0,0,25,0,2,Elite Cut2,s
+0,0,0,10,0,Free Deal3,s
+0,0,0,0,2,Unfortunate,s
+0,0,5,0,2,Power Strike5,s
+0,0,25,0,2,Elite Cut0,s
+0,0,0,10,0,Free Deal2,s
+0,0,0,0,2,HAnger,s
