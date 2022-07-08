@@ -95,14 +95,17 @@ public:
 	{
 		cout << name << "\nHP: " << s.HP_CURR << "\n";
 	}
-	void gainEXP(Unit a)
+	void gainExp(Unit a)
 	{
-		EXP = (LVL - a.LVL) * a.EXP;
+
+		EXP = max((-LVL + a.LVL), 1) * a.EXP;
 		while (EXP >= 100)
 		{
+			LVL++;
+			cout << name << " Leveled up to "<< LVL << "!\n";
 		  	srand(time(NULL));
-	int critNumber = rand() % 2*LUK + 1;
-
+	int critNumber = rand() % 4*LUK + LUK/2;
+	cout << critNumber;
 	if (critNumber > ATK) {
 		ATK++;
 		cout << name << " gained 1 ATK.\n";
@@ -137,9 +140,17 @@ public:
 
 	}
 		
+	EXP = EXP - 100;
 	
+	
+	if (EXP < 0)
+	{
+		EXP = 0;
+
 	}
 
+	}
+		
 	}
 
 };
@@ -216,6 +227,21 @@ public:
 		cout << name1 << " dealt " << damage << "!\n";
 		
 		return Party(u[0], u[1], u[2], u[3], Enemy);
+	}
+	int AverageLevel()
+	{
+		int rollSum = 0;
+		for (int i = 0; i < 4; i++)
+		{
+			if (i == 0)
+			{
+			}
+			else
+			{ 
+				rollSum += u[i].LVL;
+			}
+		}
+		return rollSum / 4;
 	}
 };
 
@@ -406,6 +432,75 @@ void combatRoutine(Party AllUnits) {
 
 
 	}
+	for (int i = 0; i < 4; i++)
+	{
+		AllUnits.u[i].gainExp(AllUnits.Enemy);
+	}
+	AllUnits.printPartyCombatInfo();
+}
+
+Unit loadRandEnemy(int diffRange) {
+	Unit u[20];
+	fstream fin;
+
+	fin.open("enemylist.csv", ios::in);
+
+
+	vector<vector<string>> content;
+	vector<string> row;
+	string line, word;
+
+	while (getline(fin, line))
+	{
+		row.clear();
+		stringstream str(line);
+
+		while (getline(str, word, ',')) {
+			row.push_back(word);
+		}
+		content.push_back(row);
+	}
+	for (int i = 0;i < content.size();i++)
+	{
+		for (int j = 0; j < content[i].size();j++)
+		{
+
+			std::cout << content[i][j] << " ";
+		}
+	}
+
+	for (int i = 0;i < 9;i++)
+	{
+		u[i].name = content[i][0];
+		u[i].HP_CURR = atoi(content[i][1].c_str());
+		u[i].HP_MAX = atoi(content[i][2].c_str());
+		u[i].SP_CURR = atoi(content[i][3].c_str());
+		u[i].SP_MAX = atoi(content[i][4].c_str());
+		u[i].ATK = atoi(content[i][5].c_str());
+		u[i].M_ATK = atoi(content[i][6].c_str());
+		u[i].DEF = atoi(content[i][7].c_str());
+		u[i].M_DEF = atoi(content[i][8].c_str());
+		u[i].LUK = atoi(content[i][9].c_str());
+		u[i].LVL = atoi(content[i][10].c_str());
+		u[i].EXP = atoi(content[i][11].c_str());
+	}
+	srand(time(NULL));
+	int randomNumber = rand() % diffRange + 1;
+	while (1 == 1) {
+	    
+		for (int i = 0;i < 9;i++)
+		{
+			if (u[i].LVL <= diffRange) {
+				int randomNumber = rand() % 10 + 1;
+				if (randomNumber > 1)
+				{
+					fin.close();
+					return u[i];
+				}
+			}
+			
+		}
+	}
 }
 
 Party loadParty()
@@ -516,7 +611,7 @@ int main() {
 
 	Party p;
 	p = loadParty();
-	p.Enemy = p.u[3];
+	p.Enemy = loadRandEnemy(p.AverageLevel());
 	combatRoutine(p);
 
 

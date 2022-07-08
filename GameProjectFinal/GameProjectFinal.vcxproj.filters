@@ -26,5 +26,6 @@
     <Text Include="skills.csv">
       <Filter>Source Files</Filter>
     </Text>
+    <Text Include="enemylist.csv" />
   </ItemGroup>
 </Project>
