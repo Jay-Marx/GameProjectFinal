@@ -74,9 +74,13 @@ public:
 	int LUK;
 	int EXP;
 	int LVL;
-	int condition; 
-
-	int specAi [4];
+	int condition=0; 
+	int tDEF=0;
+	int tM_DEF=0;
+	int tATK=0;
+	int tM_ATK=0;
+	//temporary bonuses that end when combat does.
+	int specAi[4] = {0,0,0,0};
 	//only enemys care about this.
 
 	string name;
@@ -96,6 +100,7 @@ public:
 		LVL = 0;
 		EXP = 0;
 		condition = 0;
+	
 	};
 	Unit(int hpSet, int spSet, int baseATK, int baseM_ATK, int base_DEF, int base_M_DEF, int base_LUK, string name1, int lvel, int expp)
 	{
@@ -122,58 +127,60 @@ public:
 	}
 	void gainExp(Unit a)
 	{
-
+		int seed = time(NULL);
 		EXP = max((-LVL + a.LVL), 1) * a.EXP;
 		while (EXP >= 100)
 		{
 			LVL++;
 			cout << name << " Leveled up to "<< LVL << "!\n";
-		  	srand(time(NULL));
-	int critNumber = rand() % 4*LUK + LUK/2;
-	cout << critNumber;
+		  	srand(seed);
+	int critNumber = rand() % 2*LUK + LUK/2;
+
 	if (critNumber > ATK) {
 		ATK++;
 		cout << name << " gained 1 ATK.\n";
-
+		seed = seed * .132123;
 		}
+		seed = seed* rand();
 
 	if (critNumber > M_ATK) {
 		M_ATK++;
 		cout << name << " gained 1 MGC.\n";
+		seed = seed * .132123;
 	}
 	if (critNumber > DEF) {
 		DEF++;
 		cout << name << " gained 1 DEF.\n";
+		seed = seed * .132123;
 
 	}
 	if (critNumber > M_DEF) {
 		M_DEF++;
 		cout << name << " gained 1 RES.\n";
+		seed = seed * .132123;
 	}
 	if (critNumber > LUK) {
 		LUK++;
 		cout << name << " gained 1 LUK.\n";
+		seed = seed * .132123;
 
 	}
 	if (critNumber > SP_MAX *1.5) {
 		SP_MAX = SP_MAX + 10;
 		cout << name << " gained 10 MAX SP.\n";
+		seed = seed * .132123;
 
 	}
 	if (critNumber > HP_MAX *1.2) {
 		HP_MAX = HP_MAX + (HP_MAX)/10;
 		cout << name << " gained "<< (HP_MAX) / 10<< " MAX HP.\n";
+		seed = seed * .132123;
 
 	}
 		
 	EXP = EXP - 100;
 	
-	
-	if (EXP < 0)
-	{
-		EXP = 0;
-
-	}
+	seed = 2 * seed;
 
 	}
 		
@@ -219,9 +226,17 @@ public:
 		int b = 0;
 		
 		alpha = max(u[0].HP_CURR, u[1].HP_CURR);
+
 		b = max(u[2].HP_CURR, u[3].HP_CURR);
 		alpha = max(alpha, b);
-		return alpha;
+		for (int i = 0; i < 4; i++)
+		{
+			if (u[i].HP_CURR == alpha)
+			{
+				return i;
+			}
+		}
+		return 0;
 	}
 	Party useSkill(Skill s, int activeUnit) {
 		int damage = 0; //to be displayed afterwards.
@@ -236,7 +251,7 @@ public:
 			{
 				int damage = 1;
 
-				damage = u[activeUnit].ATK - Enemy.DEF;
+				damage = u[activeUnit].ATK  + u[activeUnit].tATK- Enemy.DEF - Enemy.tDEF;
 				damage = max(damage, 1);
 
 				srand(time(NULL));
@@ -255,21 +270,50 @@ public:
 				}
 			}
 			return Party(u[0], u[1], u[2], u[3], Enemy);
+		case 2:
+			//Barrier -> bonus to DEF and mag def for your party.
+			for (int i = 0; i < 4;i++)
+			{
+				u[i].tDEF = u[i].tDEF + 5;
+				u[i].tM_DEF = u[i].tM_DEF + 5;
+
+			}
+			return Party(u[0], u[1], u[2], u[3], Enemy);
+		case 3:
+			// rally -> bonus to Attack and magic attack for the party
+			for (int i = 0; i < 4;i++)
+			{
+				u[i].tATK = u[i].ATK + 5;
+				u[i].tM_ATK = u[i].M_ATK + 5;
+			
+			}
+			return Party(u[0], u[1], u[2], u[3], Enemy);
+		case 4: 
+			//restores all allies with bad conditions to safe condition.
+			for (int i = 0; i < 4;i++)
+			{
+				if (u[i].condition == 1 || u[i].condition == 2 || u[i].condition == 3)
+				{
+					u[i].condition = 0;
+				}
+			}
+			return Party(u[0], u[1], u[2], u[3], Enemy);
 		}
+		
 
 			u[activeUnit].SP_CURR = t.SP_CURR - s.SP_COST;
 			if (s.useCase == 0)
 			{ //Damages Enemies
 				if (s.damageType == 1) {
 					//deals magic damage
-					damage = u[activeUnit].M_ATK + s.damageBonus - Enemy.M_DEF;
+					damage = u[activeUnit].M_ATK + u[activeUnit].tM_ATK + s.damageBonus  - Enemy.tM_DEF - Enemy.M_DEF;
 					damage = max(damage, 1);
 					Enemy.HP_CURR = Enemy.HP_CURR - damage;
 			}
 				else
 				{// deals physical damage
 			
-					damage = u[activeUnit].ATK + s.damageBonus - Enemy.DEF;
+					damage = u[activeUnit].ATK + u[activeUnit].tATK +s.damageBonus- Enemy.DEF - Enemy.tDEF;
 					damage = max(damage, 1);
 					Enemy.HP_CURR = Enemy.HP_CURR - damage;
 				}
@@ -281,29 +325,25 @@ public:
 					 cout << "Target which ally? 1, 2, 3, or 4 \n";
 					 int pInput3 = 1;
 					 scanf_s("%d", &pInput3);
-					int  heal = u[activeUnit].M_ATK + s.damageBonus;
+					int  heal = u[activeUnit].M_ATK +u[activeUnit].tM_ATK+ s.damageBonus;
 					u[pInput3].HP_CURR = min(u[pInput3].HP_CURR + heal, u[pInput3].HP_MAX); 
 					//can't heal over max HP
 				 }
 				 else {
 					 for (int i = 0; i > 4; i++) //heal all
 					 {
-						 int  heal = u[activeUnit].M_ATK + s.damageBonus;
+						 int  heal = u[activeUnit].M_ATK + u[activeUnit].tM_ATK + s.damageBonus;
 						 u[i].HP_CURR = min(u[i].HP_CURR + heal, u[i].HP_MAX);
 					 }
 				 }
-			}
-
+			   }
 			}
 		}
 		else
 		{
-		
 			cout << name1 << " tried to use " << name2 << " but it failed!\n";
 		}
-
 		cout << name1 << " dealt " << damage << "!\n";
-		
 		return Party(u[0], u[1], u[2], u[3], Enemy);
 	}
 	int AverageLevel()
@@ -409,7 +449,7 @@ Party attack(Party p, int activeUnit)
 	
 	int damage = 1;
 
-	damage = p.u[activeUnit].ATK  - p.Enemy.DEF;
+	damage = p.u[activeUnit].ATK +p.u[activeUnit].tATK - p.Enemy.DEF - p.Enemy.tDEF;
 	damage = max(damage, 1);
 
 	srand(time(NULL));
@@ -476,7 +516,7 @@ Party condition(Party p, int activeUnit)
 	case 3:
 		//berzerked
 
-		damage = p.u[activeUnit].ATK - p.u[randUnit].DEF;
+		damage = p.u[activeUnit].ATK + p.u[activeUnit].tATK + - p.u[randUnit].DEF - p.u[randUnit].tDEF;
 		damage = max(damage, 1);
 		if (randUnit == activeUnit)
 		{
@@ -597,11 +637,15 @@ Party enemyTurn(Party p){
 	//really basic AI
 	//advance action count to determine type of attack.
 	int total = 0;
-	p.Enemy.specAi[3]++; 
+	p.Enemy.specAi[3]= p.Enemy.specAi[3]+1; 
 	srand(time(NULL));
 	int damage;
 	int randUnit = rand() % 4;
-	switch (p.Enemy.specAi[3] % 3)
+	int switchCase = p.Enemy.specAi[3] % 3;
+	int randomStatus = rand() % 3;
+	int target = p.getHighestHPUnitID();
+	cout << p.Enemy.specAi[3]<< "\n";
+	switch (switchCase)
 	{
 	case 0:
 		//attacks a random ally
@@ -631,17 +675,18 @@ Party enemyTurn(Party p){
 			return p;
 			//regens 20% maxHP
 		case 2://give a party member a random status.
-			int randomStatus = rand() % 3; 
-			int target = p.getHighestHPUnitID();
+			
+			cout << target;
+			cout << p.u[target].condition;
 			p.u[target].condition = randomStatus;
 			printStatus(randomStatus, p.u[target].name);
 			return p;
 		}
 	case 2:
-		switch(p.Enemy.specAi[1])
+		switch (p.Enemy.specAi[1])
 		{
 		case 0: //deals damage to whole party and heals that amount
-		 total = 0;
+			total = 0;
 			for (int i = 0; i < 4; i++) //deal MAG damage to all
 			{
 				damage = p.Enemy.M_ATK - p.u[i].M_DEF;
@@ -655,30 +700,27 @@ Party enemyTurn(Party p){
 			return p;
 		case 1:
 			//sucks SP from party and restores HP equal to that amount
-			 total = 0;
+			total = 0;
 			for (int i = 0; i < 4; i++) //deal MAG damage to all
 			{
 				damage = 5;
 
-				p.u[i].SP_CURR =  max(p.u[i].SP_CURR - damage, 0);
+				p.u[i].SP_CURR = max(p.u[i].SP_CURR - damage, 0);
 				cout << p.Enemy.name << " drains " << p.u[i].name << " for " << damage << " SP!\n";
 				total = damage + total;
 			}
 			p.Enemy.HP_CURR = min(p.Enemy.HP_CURR + total, p.Enemy.HP_MAX);
 			return p;
-		case 2: 
+		case 2:
 		{
 			//strenthen's Defences
-			p.Enemy.DEF = p.Enemy.DEF + 5;
-			p.Enemy.M_DEF = p.Enemy.M_DEF + 5;
-			cout << "Enemy Strengthened it's defences! \n";
+			p.Enemy.DEF = p.Enemy.tDEF + 5;
+			p.Enemy.M_DEF = p.Enemy.tM_DEF + 5;
+			cout << "Enemy Strengthened its defences! \n";
 			return p;
 		}
 
 		}
-
-
-
 	}
 
 	return p;
