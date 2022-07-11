@@ -1,0 +1,21 @@
+Apple,Eat to restore 5 HP.,2,5,5
+Burger,Eat to restore 20 HP.,2,20,3
+Legendary Sword of Evil's Bane, Use to gain +20 ATK.,3,20,1
+Draco Shield,Use to gain +20 DEF,5,20,1
+57 Leaf Clover,Use to gain +57 LUK,6,57,1
+A Strange Dream,Use to gain +20 MATK,4,20,1
+Pure Water,Use to gan +20 MDEF,5,20,1
+ERROR,ERROR,2,-100,1
+Yoyo,Use to gain +1 ATK,3,1,5
+Monster Teeth,Use to gain +2 SP_MAX,7,2,1
+Ether,Regain 100 SP,8,100,20
+True Revive,Regain 9999 HP,2,9999,1
+Aether,Use to gain +500 ATK,3,500,1
+Godhood,Use to gain +4000 HPMAX,1,4000,1
+Aegis ,Use to gain +400 Def,4,400,1
+Outlyer,Use to gain +10???,7,10,1
+Yoyo,Use to gain +1 ATK,3,1,5
+Monster Teeth,Use to gain +2 SP_MAX,7,2,1
+Yoyo,Use to gain +1 ATK,3,1,5
+Monster Teeth,Use to gain +2 SP_MAX,7,2,1
+name,desc,changeinstat[//0 for HP_MAX  1 for HP_CURR 2 for ATK 3 for M_ATK 4 for DEF 5 for M_DEF 6 for LUK 7 for SP_MAX 8 for SP_CURR],magnitude,uses

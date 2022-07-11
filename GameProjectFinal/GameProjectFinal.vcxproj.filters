@@ -27,5 +27,6 @@
       <Filter>Source Files</Filter>
     </Text>
     <Text Include="enemylist.csv" />
+    <Text Include="convoy.csv" />
   </ItemGroup>
 </Project>
