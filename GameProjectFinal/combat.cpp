@@ -135,6 +135,8 @@ public:
 			cout << name << " Leveled up to "<< LVL << "!\n";
 		  	srand(seed);
 	int critNumber = rand() % 2*LUK + LUK/2;
+	// LUK as a stat determines level ups. Thats it. Thats all it does
+	//Maybe a skill could use it for dmg or something but atm no.
 
 	if (critNumber > ATK) {
 		ATK++;
@@ -243,24 +245,104 @@ public:
 		Unit t = u[activeUnit];
 		string name1 = u[activeUnit].name;
 		string name2 = s.name;
+		int critNumber = 0;
 		if (t.SP_CURR >= s.SP_COST) { //check SP
-		switch (s.specialThing) //Skills that don't fit the Skill templete mold.
-		{
-		case 1: 
-			for (int i = 5; i != 0; i--)
-			{
-				int damage = 1;
+			u[activeUnit].SP_CURR = t.SP_CURR - s.SP_COST;
+			switch (s.specialThing) //Skills that don't fit the Skill templete mold.
+			{//Astra
+			case 1:
+				for (int i = 5; i != 0; i--)
+				{
+					damage = 1;
 
-				damage = u[activeUnit].ATK  + u[activeUnit].tATK- Enemy.DEF - Enemy.tDEF;
+					damage = u[activeUnit].ATK + u[activeUnit].tATK - Enemy.DEF - Enemy.tDEF;
+					damage = max(damage, 1);
+
+					srand(time(NULL));
+					 critNumber = rand() % 100 + 1;
+
+					if (critNumber > 50) {
+						damage = damage * 3;
+						cout << u[activeUnit].name << " critically strikes for " << damage << " damage!\n";
+						Enemy.HP_CURR = Enemy.HP_CURR - damage;
+
+					}
+					else {
+						Enemy.HP_CURR = Enemy.HP_CURR - damage;
+						cout << u[activeUnit].name << " deals " << damage << " damage!\n";
+
+					}
+				}
+				return Party(u[0], u[1], u[2], u[3], Enemy);
+			case 2:
+				//Stand Firm -> Double's self defence.
+				u[activeUnit].tDEF = u[activeUnit].DEF;
+
+				return Party(u[0], u[1], u[2], u[3], Enemy);
+			case 3:
+				// Shatter -> tDEf and TMDEF penalties
+				Enemy.tDEF = -10;
+				Enemy.tM_DEF = -10;
+
+				return Party(u[0], u[1], u[2], u[3], Enemy);
+			case 4:
+				//restores all allies with bad conditions to safe condition.
+				for (int i = 0; i < 4;i++)
+				{
+					if (u[i].condition == 1 || u[i].condition == 2 || u[i].condition == 3)
+					{
+						u[i].condition = 0;
+					}
+				}
+				return Party(u[0], u[1], u[2], u[3], Enemy);
+			case 5:
+				//Excite -> grant all allys the Excite buff
+				for (int i = 0; i < 4;i++)
+				{
+					u[i].condition = 4;
+				}
+				return Party(u[0], u[1], u[2], u[3], Enemy);
+			case 6:
+				//heal for % of damage dealt
+				 damage = 1;
+
+				damage = u[activeUnit].ATK + u[activeUnit].tATK - Enemy.DEF - Enemy.tDEF;
 				damage = max(damage, 1);
 
 				srand(time(NULL));
-				int critNumber = rand() % 100 + 1;
+				 critNumber = rand() % 100 + 1;
 
-				if (critNumber > 50) {
+				if (critNumber > 90) {
 					damage = damage * 3;
 					cout << u[activeUnit].name << " critically strikes for " << damage << " damage!\n";
 					Enemy.HP_CURR = Enemy.HP_CURR - damage;
+					u[activeUnit].HP_CURR = min(u[activeUnit].HP_MAX, u[activeUnit].HP_CURR + damage);
+					cout << u[activeUnit].name << " heals for " << damage << " damage!\n";
+				}
+				else {
+					Enemy.HP_CURR = Enemy.HP_CURR - damage;
+					u[activeUnit].HP_CURR = min(u[activeUnit].HP_MAX, u[activeUnit].HP_CURR + damage);
+
+					cout << u[activeUnit].name << " deals " << damage << " damage!\n";
+					cout << u[activeUnit].name << " heals for " << damage << " damage!\n";
+				}
+
+				return Party(u[0], u[1], u[2], u[3], Enemy);
+			case 7:
+				//luna -> neg defences
+				 damage = 1;
+
+				damage = u[activeUnit].ATK + u[activeUnit].tATK;
+				damage = max(damage, 1);
+
+				srand(time(NULL));
+				 critNumber = rand() % 100 + 1;
+
+				if (critNumber > 90) {
+					damage = damage * 3;
+					cout << u[activeUnit].name << " critically strikes for " << damage << " damage!\n";
+					Enemy.HP_CURR = Enemy.HP_CURR - damage;
+
 
 				}
 				else {
@@ -268,40 +350,70 @@ public:
 					cout << u[activeUnit].name << " deals " << damage << " damage!\n";
 
 				}
-			}
-			return Party(u[0], u[1], u[2], u[3], Enemy);
-		case 2:
-			//Barrier -> bonus to DEF and mag def for your party.
-			for (int i = 0; i < 4;i++)
-			{
-				u[i].tDEF = u[i].tDEF + 5;
-				u[i].tM_DEF = u[i].tM_DEF + 5;
+				return Party(u[0], u[1], u[2], u[3], Enemy);
+			case 8:
+				u[activeUnit].tDEF = 5;
+				u[activeUnit].tM_DEF = 5;
 
-			}
-			return Party(u[0], u[1], u[2], u[3], Enemy);
-		case 3:
-			// rally -> bonus to Attack and magic attack for the party
-			for (int i = 0; i < 4;i++)
-			{
-				u[i].tATK = u[i].ATK + 5;
-				u[i].tM_ATK = u[i].M_ATK + 5;
-			
-			}
-			return Party(u[0], u[1], u[2], u[3], Enemy);
-		case 4: 
-			//restores all allies with bad conditions to safe condition.
-			for (int i = 0; i < 4;i++)
-			{
-				if (u[i].condition == 1 || u[i].condition == 2 || u[i].condition == 3)
-				{
-					u[i].condition = 0;
+				break;
+			case 9:
+				s.damageBonus = u[activeUnit].HP_MAX - u[activeUnit].HP_CURR;
+				break;
+			case 10:
+				//heal for % of damage dealt
+				 damage = 1;
+
+				damage = u[activeUnit].ATK + u[activeUnit].tATK - Enemy.DEF - Enemy.tDEF;
+				damage = max(damage, 1);
+
+				srand(time(NULL));
+				 critNumber = rand() % 100 + 1;
+
+				if (critNumber > 90) {
+					damage = damage * 3;
+					cout << u[activeUnit].name << " critically strikes for " << damage << " damage!\n";
+					Enemy.HP_CURR = Enemy.HP_CURR - damage;
+					u[activeUnit].HP_CURR = min(u[activeUnit].HP_MAX, u[activeUnit].HP_CURR + damage);
+					cout << u[activeUnit].name << " heals for " << damage << " damage!\n";
 				}
-			}
-			return Party(u[0], u[1], u[2], u[3], Enemy);
+				else {
+					Enemy.HP_CURR = Enemy.HP_CURR - damage;
+					u[activeUnit].HP_CURR = min(u[activeUnit].HP_MAX, u[activeUnit].HP_CURR + damage);
+
+					cout << u[activeUnit].name << " deals " << damage << " damage!\n";
+					cout << u[activeUnit].name << " heals for " << damage << " damage!\n";
+				}
+
+				//luna -> neg defences
+				damage = u[activeUnit].ATK + u[activeUnit].tATK;
+				damage = max(damage, 1);
+
+				srand(time(NULL));
+				 critNumber = rand() % 200 + 1;
+
+				if (critNumber > 180) {
+					damage = damage * 3;
+					cout << u[activeUnit].name << " critically strikes for " << damage << " damage!\n";
+					Enemy.HP_CURR = Enemy.HP_CURR - damage;
+
+
+				}
+				else {
+					Enemy.HP_CURR = Enemy.HP_CURR - damage;
+					cout << u[activeUnit].name << " deals " << damage << " damage!\n";
+
+				}
+				return Party(u[0], u[1], u[2], u[3], Enemy);
+
+			case 11:
+				for (int i = 0; i < 4;i++)
+				{
+					u[i].tATK = u[activeUnit].ATK;
+				}
+				return Party(u[0], u[1], u[2], u[3], Enemy);
 		}
 		
 
-			u[activeUnit].SP_CURR = t.SP_CURR - s.SP_COST;
 			if (s.useCase == 0)
 			{ //Damages Enemies
 				if (s.damageType == 1) {
@@ -330,7 +442,7 @@ public:
 					//can't heal over max HP
 				 }
 				 else {
-					 for (int i = 0; i > 4; i++) //heal all
+					 for (int i = 0; i < 4; i++) //heal all
 					 {
 						 int  heal = u[activeUnit].M_ATK + u[activeUnit].tM_ATK + s.damageBonus;
 						 u[i].HP_CURR = min(u[i].HP_CURR + heal, u[i].HP_MAX);
@@ -501,7 +613,7 @@ Party condition(Party p, int activeUnit)
 	case 1: 
 		//poison -> take maxHP % damage
 
-		damage = p.u[activeUnit].HP_CURR - p.u[activeUnit].HP_MAX * .20;
+		damage =  p.u[activeUnit].HP_MAX * .20;
 		p.u[activeUnit].HP_CURR = p.u[activeUnit].HP_CURR - damage;
 		cout << p.u[activeUnit].name << " takes " << damage << " damage from poison!\n";
 		break;
@@ -925,7 +1037,7 @@ Party loadParty()
 			}
 		}
 		int j = 0;
-		for (int i = 0;i < 12;i++)
+		for (int i = 0;i <	16;i++)
 		{
 				Skill s(atoi(content[i][0].c_str()), atoi(content[i][1].c_str()), atoi(content[i][2].c_str()), atoi(content[i][3].c_str()), atoi(content[0][4].c_str()), content[i][5], content[i][6]);
 				p.u[i/4].s[j] = s;

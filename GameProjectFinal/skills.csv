@@ -1,16 +1,17 @@
-0,0,5,0,2,Power Strike, SP: 2 DMG +5
-0,0,25,0,5,Elite Cut,SP: 5 DMG +25
-0,0,10,0,0,Free Deal,SP: 0 DMG +10
-0,0,0,0,2,Bad Skill,SP: 2 DMG +0
-0,0,5,0,2,Power Striker, s
-0,0,25,0,2,Elite Cuts,s
-0,0,0,10,0,Free Deals,s
-0,0,0,0,2,Cutters,s
-0,0,5,0,2,Power Strike1,s
-0,0,25,0,2,Elite Cut2,s
-0,0,0,10,0,Free Deal3,s
-0,0,0,0,2,Unfortunate,s
-0,0,5,0,2,Power Strike5,s
-0,0,25,0,2,Elite Cut0,s
-0,0,0,10,0,Free Deal2,s
-0,0,0,0,2,HAnger,s
+1,0,5,0,5,Magic Strike, SP: 5 DMG +5-> Deals Magic damage.,,
+0,0,25,0,15,Elite Cut,SP: 15 DMG +25-> Deals Physical damage,,
+0,0,10,1,17,Healing Word,SP: 17-> Heal all Allies equal to MAG +10.,,
+0,2,0,0,20,Stand Firm,SP: 20-> Double your defence for this battle.,,
+1,0,30,0,3,Grafcalibur, SP: 3. DMG +30-> Deals Magic Damage.,,
+0,3,25,0,15,Shatter ,SP: 15. Reduce Enemy DEF and MDEF by 10 points.,,
+0,4,0,0,10,Cura,SP: 10. Return all allies's condition to normal.,,
+0,5,0,0,45,Excite,SP: 200. Excite all allies. Grants them another turn.,,
+0,6,5,0,5,Sol,SP:5. DMG +5 -> Restores health equal to damage dealt.,,
+0,7,0,0,2,Luna,Sp: 7 DMG +0. Deals Damage without subtracting enemy's defence.,,
+0,1,0,0,0,Astra,SP:10 DMG +0. Attack 5 times with a higher critical rate.,,
+0,8,18,0,2,Binding Blade,SP: 20. DMG +18. Raise your DEF and MDEF by 5 for the rest of the battle.,,
+0,9,5,0,10,Wrath,SP:10. Gain a bonus to damage equal to the amount of health you are missing.,,0
+0,10,0,0,25,Aether,SP:25. Attack twice. The first strike negates defences. The second strike heals you.,,
+0,11,0,0,30,Imbue,SP: 30. Grant all allies bonuses to attack equal to this unit's attack.,,
+1,0,100,0,50,Ultima Strike,SP: 50. DMG +100. Deals magic damage.,,
+dtype,specthing,damagebonus,heal? ,SPCOST,Name,Desc,,
