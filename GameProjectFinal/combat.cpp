@@ -21,6 +21,7 @@ bool isNumber(const string& str)
 	return true;
 }
 
+
 class Skill {
 public:
 	string name;
@@ -61,6 +62,34 @@ public:
 
 };
 
+class Klass {
+public:
+	Skill s[4];
+	string name;
+	string desc;
+	
+	Klass()
+	{
+		
+	}
+
+};
+
+class Condition { //pending rework of conditions
+	//may not actually do it, but basic framework is here
+public:
+	string name;
+	string desc;
+	int duration;
+	int str;
+	Condition(string n, string d, int a, int b) {
+		name = n;
+		desc = d;
+		duration = a;
+		str = b;
+	}
+}
+;
 class Unit {
 public:
 	int HP_MAX;
@@ -79,12 +108,16 @@ public:
 	int tM_DEF=0;
 	int tATK=0;
 	int tM_ATK=0;
-	//temporary bonuses that end when combat does.
+	//temporary bonuses that end when combat does. (not saved or read from csv)
 	int specAi[4] = {0,0,0,0};
 	//only enemys care about this.
-
+	Klass c[2];
+	//class normal
+	//change possible?
 	string name;
-	Skill s[4];
+	int cExp1;
+	int cExp2;
+	//class experience -> unimplimented now.
 
 	Unit()
 	{
@@ -101,9 +134,9 @@ public:
 		EXP = 0;
 		condition = 0;
 	
-	};
+	}; //constructor basic
 	Unit(int hpSet, int spSet, int baseATK, int baseM_ATK, int base_DEF, int base_M_DEF, int base_LUK, string name1, int lvel, int expp)
-	{
+	{ //constructor with all important PLAYER characteristics
 		HP_MAX = hpSet;
 		HP_CURR = hpSet;
 		ATK = baseATK;
@@ -116,17 +149,19 @@ public:
 		LVL = lvel;
 		EXP = expp;
 		condition = 0;
+
 	};
 	void setName(string s)
 	{
-		name = s;
+		name = s; //not really neaded
 	}
 	void printStats(Unit s)
-	{
+	{ //helpful, but needs expansion
 		cout << name << "\nHP: " << s.HP_CURR << "\n";
 	}
 	void gainExp(Unit a)
-	{
+	{         
+		//checks if EXP is enough ot level up.
 		int seed = time(NULL);
 		EXP = max((-LVL + a.LVL), 1) * a.EXP;
 		while (EXP >= 100)
@@ -210,6 +245,7 @@ public:
 	};
 	void printPartyCombatInfo()
 	{
+		//bread and butter of the display
 		Unit u1 = u[0];
 		Unit u2 = u[1];
 		Unit u3 = u[2];
@@ -223,7 +259,7 @@ public:
 		cout << partyCombatInfo[3];
 	}
 	int getHighestHPUnitID()
-	{
+	{	//useful for enemy targeting -> have enemy ai target highest hp in party
 		int alpha = 0;
 		int b = 0;
 		
@@ -241,6 +277,7 @@ public:
 		return 0;
 	}
 	Party useSkill(Skill s, int activeUnit) {
+		//attempt to push all skills into one function to use.
 		int damage = 0; //to be displayed afterwards.
 		Unit t = u[activeUnit];
 		string name1 = u[activeUnit].name;
@@ -452,14 +489,14 @@ public:
 			}
 		}
 		else
-		{
+		{ // generally lack of SP
 			cout << name1 << " tried to use " << name2 << " but it failed!\n";
 		}
 		cout << name1 << " dealt " << damage << "!\n";
 		return Party(u[0], u[1], u[2], u[3], Enemy);
 	}
 	int AverageLevel()
-	{
+	{ //not working correctly atm, but a way to fetch good enemies!
 		int rollSum = 0;
 		for (int i = 0; i < 4; i++)
 		{
@@ -474,6 +511,7 @@ public:
 	string name;
 	string desc;
 	int uses;
+	//not working atm. Might make it work, might not
 	int changeInStat;
 	//0 for HP_MAX, 1 for HP_CURR, 2 for ATK, 3 for M_ATK, 4 for DEF, 5 for M_DEF, 6 for LUK, 7 for SP_MAX, 8 for SP_CURR
 	int magnitude;
@@ -550,12 +588,6 @@ public:
 	Item i[20];
 };
 
-// HP_MAX, HP_CURR, ATK, M ATK, DEF, MDEF, LUK, SP_MAX, SP_CURR, charID
-
-//Name, Job/Klass, Skill, Skill1, Skill2, Skill3 
-
-
-
 Party attack(Party p, int activeUnit)
 {
 	
@@ -580,31 +612,39 @@ Party attack(Party p, int activeUnit)
 	return p;
 }
 
-Party skill(Party p, int activeUnit)
+Party skill(Party p, float sa)
 {
+	int c = 0;
+	//this determines which class to draw skills from.
+	int activeUnit = sa;
+	//kinda smart for this solution, ngl
+	if (sa - activeUnit != 0)
+	{
+		c = 1;
+	}
 	Unit a = p.u[activeUnit];
-	cout << a.name << " can use: \n1:" << a.s[0].name << " 2:" << a.s[1].name << " 3:" << a.s[2].name << " 4:" << a.s[3].name <<"\n";
+	cout << a.name << " can use: \n";
 	
 	for (int i = 0; i < 4; i++)
 	{
-		cout << a.s[i].desc<<" ";
+		cout << i + 1<<": " << a.c[c].s[i].name <<" \n"<< a.c[c].s[i].desc << " \n";
 	}
 	int pInput3 = 1;
 	scanf_s("%d", &pInput3);
-	return p.useSkill(p.u[activeUnit].s[pInput3-1], activeUnit);
+	return p.useSkill(p.u[activeUnit].c[0].s[pInput3-1], activeUnit);
 }
 
 Party item(Party p, int activeUnit)
 {
-	
+	//item implimentation is tbd
 	return p;
 
 }
 
 Party condition(Party p, int activeUnit)
 {
+	//pending rework
 	int damage = 1;
-
 	srand(time(NULL));
 	int critNumber = rand() % 100 + 1;
 	int randUnit = rand() %4;
@@ -665,7 +705,7 @@ Party condition(Party p, int activeUnit)
 }
 
 Party playerTurn(int activeUnit, Party p) {
-
+	float pa = 0;
 	p = condition(p, activeUnit);
 	if (p.u[activeUnit].condition == 2)
 	{
@@ -686,7 +726,7 @@ Party playerTurn(int activeUnit, Party p) {
 	for (int i = 0; i < turns;i++)
 	{
 		Unit a = p.u[activeUnit];
-		cout << a.name << "'s Turn: \n1: Attack \n2: Skill \n3: Item \n4: Rest \n";
+		cout << a.name << "'s Turn: \n1: Attack \n2: " << a.c[0].name<<" \n3: " << a.c[1].name<< "\n4 : Rest \n";
 
 		int pInput6 = 0;
 		scanf_s("%d", &pInput6);
@@ -704,14 +744,17 @@ Party playerTurn(int activeUnit, Party p) {
 
 		case 3:
 			//items are difficult -> maybe remove/replace?
-			p = item(p, activeUnit);
+			pa = float(activeUnit) + .2;
+			//the float allows me to differenciate between which class to draw skills from
+			p = skill(p, pa);
 			return p;
 
 		case 4:
 			p.u[activeUnit].HP_CURR = min(p.u[activeUnit].HP_MAX, p.u[activeUnit].HP_CURR + p.u[activeUnit].LUK);
 			p.u[activeUnit].SP_CURR = min(p.u[activeUnit].SP_MAX, p.u[activeUnit].SP_CURR + p.u[activeUnit].LUK);
 			//resting restores both HP and SP by units LUK.	
-
+			//either replace this with items or something else
+			//pending condition rework, might implement a DEFEND that reduces damage taken
 			return p;
 
 		default:
@@ -721,7 +764,7 @@ Party playerTurn(int activeUnit, Party p) {
 	return p;
 }
 void printStatus(int p, string n)
-{
+{ //pending status rework
 	switch (p)
 	{
 	case 0: 
@@ -745,9 +788,11 @@ void printStatus(int p, string n)
 	}
 }
 Party enemyTurn(Party p){
-	
 	//really basic AI
 	//advance action count to determine type of attack.
+
+	//can add more actions to add more difficult/easy bosses and enemies
+
 	int total = 0;
 	p.Enemy.specAi[3]= p.Enemy.specAi[3]+1; 
 	srand(time(NULL));
@@ -763,8 +808,11 @@ Party enemyTurn(Party p){
 		//attacks a random ally
 		damage = p.Enemy.ATK - p.u[randUnit].DEF;
 		damage = max(damage, 1);
-
-		p.u[randUnit].HP_CURR = p.u[randUnit].HP_CURR - damage;
+		while (p.u[randUnit].HP_CURR <= 0)
+		{
+			randUnit = rand() % 4;
+		}
+		p.u[randUnit].HP_CURR = max(p.u[randUnit].HP_CURR - damage,0);
 		cout << p.Enemy.name << " strikes " << p.u[randUnit].name << " for " << damage << " damage!\n";
 
 		return p;
@@ -778,7 +826,7 @@ Party enemyTurn(Party p){
 				damage = p.Enemy.M_ATK - p.u[i].M_DEF;
 				damage = max(damage, 1);
 
-				p.u[i].HP_CURR = p.u[i].HP_CURR - damage;
+				p.u[i].HP_CURR = max(p.u[i].HP_CURR - damage,0);
 				cout << p.Enemy.name << " strikes " << p.u[i].name << " for " << damage << " damage!\n";
 			}
 
@@ -803,8 +851,7 @@ Party enemyTurn(Party p){
 			{
 				damage = p.Enemy.M_ATK - p.u[i].M_DEF;
 				damage = max(damage, 1);
-
-				p.u[i].HP_CURR = p.u[i].HP_CURR - damage;
+				p.u[i].HP_CURR = max(p.u[i].HP_CURR - damage, 0);
 				cout << p.Enemy.name << " strikes " << p.u[i].name << " for " << damage << " damage!\n";
 				total = damage + total;
 			}
@@ -838,17 +885,31 @@ Party enemyTurn(Party p){
 	return p;
 }
 
+bool saveParty() {
+	return true;
+}
+
 void combatRoutine(Party AllUnits) {
 	cout << (AllUnits.Enemy.HP_CURR);
 	int currentUnit = 0;
-	while (AllUnits.Enemy.HP_CURR > 0)
+	bool alive= false;
+	for (int i = 0; i < 4; i++) //check if any alive
+	{
+		if (AllUnits.u[i].HP_CURR > 0)
+		{
+			alive = true;
+		}
+	}
+	while (AllUnits.Enemy.HP_CURR > 0 || !alive)
 	{
 		Unit s;
 
 		AllUnits.printPartyCombatInfo();
 
-		AllUnits = playerTurn(currentUnit, AllUnits);
-
+		if (AllUnits.u[currentUnit].HP_CURR > 0)
+		{
+			AllUnits = playerTurn(currentUnit, AllUnits);
+		}
 		AllUnits.Enemy.printStats(AllUnits.Enemy);
 		//Enemy TurnS
 
@@ -953,6 +1014,7 @@ Unit loadRandEnemy(int diffRange) {
 			
 		}
 	}
+	return u[10];
 }
 
 Party loadParty()
@@ -982,14 +1044,7 @@ Party loadParty()
 			}
 			content.push_back(row);
 		}
-		for (int i = 0;i < content.size();i++)
-		{
-			for (int j = 0; j < content[i].size();j++)
-			{
 
-				std::cout << content[i][j] << " ";
-			}
-		}
 		for (int i = 0;i < 4;i++)
 		{
 			p.u[i].name = content[i][0];
@@ -1004,15 +1059,18 @@ Party loadParty()
 			p.u[i].LUK = atoi(content[i][9].c_str());
 			p.u[i].LVL = atoi(content[i][10].c_str());
 			p.u[i].EXP = atoi(content[i][11].c_str());
+			p.u[i].c[0].name = content[i][12];
+			p.u[i].c[1].name = content[i][13];
+			p.u[i].cExp1 = atoi(content[i][14].c_str());
+			p.u[i].cExp2 = atoi(content[i][15].c_str());
 		}
 
-		cout << "\n";
-		cout << content[2][1].c_str() << content[2][2] << content[3][1] << content[3][2];
+		cout << "... Characters loaded ...\n";
 		fin.close();
 	}
 	if (2 == 2) { //doing each file in its own scope.
 		fin.open("skills.csv", ios::in);
-
+		Klass c[4];
 
 		vector<vector<string>> content;
 		vector<string> row;
@@ -1028,41 +1086,65 @@ Party loadParty()
 			}
 			content.push_back(row);
 		}
-		for (int i = 0;i < content.size();i++)
-		{
-			for (int j = 0; j < content[i].size();j++)
-			{
 
-				std::cout << content[i][j] << " ";
-			}
-		}
 		int j = 0;
+		int k = 0;
 		for (int i = 0;i <	16;i++)
 		{
 				Skill s(atoi(content[i][0].c_str()), atoi(content[i][1].c_str()), atoi(content[i][2].c_str()), atoi(content[i][3].c_str()), atoi(content[0][4].c_str()), content[i][5], content[i][6]);
-				p.u[i/4].s[j] = s;
+				c[k].s[j] = s;
 				j++;
 				if (j == 4)
 				{
 					j = 0;
+					k++;
 				}
 		}
+		j = 0;
+		k = 0;
 		
+		for (int i = 16; i < 20; i++)
+		{ 
+
+			c[k].name = content[i][0];
+			c[k].desc = content[i][1];
+			
+			cout << c[k].desc << c[k].name <<" \n";
+			k++;
+		}
+		string name1;
+		string name2;
+		string name3;
+		for (int i = 0;i < 4;i++)
+		{
+			for (int k = 0; k < 4; k++)
+			{
+				cout << i;
+				name1 = p.u[i].c[0].name.c_str();
+				name2 = c[k].name.c_str();
+				name3 = p.u[i].c[1].name.c_str();
 
 
-
-
-
+				if (name1 == name2)
+				{
+					p.u[i].c[0] = c[k];
+				}
+				if (name3 == name2)
+				{
+					p.u[i].c[1] = c[k];
+				}
+			}
+		}
 	}
-	for (int i = 0; i < 4; i++)
-	{
-		cout << p.u[i].name <<"\n";
-	}
+
+	cout << "Skills Loaded... \n";
 	return p;
 }
 
 Convoy loadConvoy()
 {
+	//unused rn.
+
 	Convoy c;
 	// File pointer
 	fstream fin;
@@ -1088,14 +1170,7 @@ Convoy loadConvoy()
 			}
 			content.push_back(row);
 		}
-		for (int i = 0;i < content.size();i++)
-		{
-			for (int j = 0; j < content[i].size();j++)
-			{
-
-				std::cout << content[i][j] << " ";
-			}
-		}
+	
 		for (int i = 0;i<20;i++)
 		{
 			c.i[i].name = content[i][0];
@@ -1106,7 +1181,6 @@ Convoy loadConvoy()
 		
 		}
 
-		cout << "\n";
 
 
 		fin.close();
