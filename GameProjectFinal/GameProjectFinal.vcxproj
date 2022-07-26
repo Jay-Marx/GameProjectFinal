@@ -146,6 +146,7 @@
     <Text Include="skills.csv" />
     <Text Include="enemylist.csv" />
     <Text Include="convoy.csv" />
+    <Text Include="save1.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

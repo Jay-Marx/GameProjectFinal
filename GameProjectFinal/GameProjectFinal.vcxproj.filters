@@ -28,5 +28,6 @@
     </Text>
     <Text Include="enemylist.csv" />
     <Text Include="convoy.csv" />
+    <Text Include="save1.txt" />
   </ItemGroup>
 </Project>

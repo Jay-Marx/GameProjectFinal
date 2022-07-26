@@ -10,7 +10,6 @@
 #include <cstdlib>
 #include <random>
 
-
 using namespace std;
 
 bool isNumber(const string& str)
@@ -20,7 +19,6 @@ bool isNumber(const string& str)
 	}
 	return true;
 }
-
 
 class Skill {
 public:
@@ -151,6 +149,32 @@ public:
 		condition = 0;
 
 	};
+	Unit dealDamage(Unit t)
+	{
+		int damage = 1;
+		//can do conditions for resist here.
+
+		damage = ATK + tATK - t.DEF - t.tDEF;
+		damage = max(damage, 1);
+		t.HP_CURR = max(0, t.HP_CURR - damage);
+
+		srand(time(NULL));
+		int critNumber = rand() % 100 + 1;
+
+		if (critNumber > 95) {
+			damage = damage * 3;
+
+			cout << name << " critically strikes for " << damage << "  damage to " << t.name << "!\n";
+			t.HP_CURR = t.HP_CURR - damage;
+
+		}
+		else {
+			t.HP_CURR = t.HP_CURR - damage;
+			cout << name << " deals " << damage << " damage to "<< t.name <<"!\n";
+
+		}
+		return t;
+	}
 	void setName(string s)
 	{
 		name = s; //not really neaded
@@ -225,15 +249,57 @@ public:
 
 };
 
+class Item {
+public:
+	string name;
+	string desc;
+	int uses;
+	//not working atm. Might make it work, might not
+	int changeInStat;
+	//0 for HP_MAX, 1 for HP_CURR, 2 for ATK, 3 for M_ATK, 4 for DEF, 5 for M_DEF, 6 for LUK, 7 for SP_MAX, 8 for SP_CURR
+	int magnitude;
+	//how much does it change the stat by?
+	Item()
+	{
+		name = "";
+		desc = "";
+		uses = 0;
+		changeInStat = 0;
+		magnitude = 0;
+	}
+	Item(string nam, string des, int use, int stat, int mag)
+	{
+		name = nam;
+		desc = des;
+		uses = use;
+		changeInStat = stat;
+		magnitude = mag;
+	}
+	void destroyItem()
+	{
+		name = "";
+		desc = "";
+		uses = 0;
+		changeInStat = 0;
+		magnitude = 0;
+	}
+};
+
+class Convoy {
+public:
+	Item i[20];
+};
+
 class Party
 {
 public:
 	Unit u[4];
 	Unit Enemy;
+	Convoy con;
+	Convoy allItems;
 	
 	Party()
 	{
-
 	};
 	Party(Unit a, Unit b, Unit c, Unit d, Unit Enemy1)
 	{
@@ -300,6 +366,7 @@ public:
 
 					if (critNumber > 50) {
 						damage = damage * 3;
+							
 						cout << u[activeUnit].name << " critically strikes for " << damage << " damage!\n";
 						Enemy.HP_CURR = Enemy.HP_CURR - damage;
 
@@ -504,111 +571,52 @@ public:
 		}
 		return rollSum / 4;
 	}
-};
-
-class Item {
-public:
-	string name;
-	string desc;
-	int uses;
-	//not working atm. Might make it work, might not
-	int changeInStat;
-	//0 for HP_MAX, 1 for HP_CURR, 2 for ATK, 3 for M_ATK, 4 for DEF, 5 for M_DEF, 6 for LUK, 7 for SP_MAX, 8 for SP_CURR
-	int magnitude;
-	//how much does it change the stat by?
-	Item()
+	Party useItem(int unit, int itemPos, Party p)
 	{
-		name = "";
-		desc = ""; 
-		uses = 0;
-		changeInStat = 0;
-		magnitude = 0;
-	}
-	Item(string nam, string des, int use, int stat, int mag)
-	{
-		name = nam;
-		desc = des;
-		uses = use;
-		changeInStat = stat;
-		magnitude = mag;
-	}
-	void destroyItem()
-	{
-		name = "";
-		desc = "";
-		uses = 0;
-		changeInStat = 0;
-		magnitude = 0;
-	}
-	Party useItem(int unit, Party p)
-	{
-		switch (changeInStat) {
+		switch (p.con.i[itemPos].changeInStat) {
 		case 0:
-			p.u[unit].HP_MAX = p.u[unit].HP_MAX + magnitude;
-			p.u[unit].HP_CURR = p.u[unit].HP_CURR + magnitude;
+			p.u[unit].HP_MAX = p.u[unit].HP_MAX + p.con.i[itemPos].magnitude;
+			p.u[unit].HP_CURR = p.u[unit].HP_CURR + p.con.i[itemPos].magnitude;
 		case 1:
 
-			p.u[unit].HP_CURR = min(p.u[unit].HP_CURR + magnitude, p.u[unit].HP_MAX);
+			p.u[unit].HP_CURR = min(p.u[unit].HP_CURR + p.con.i[itemPos].magnitude, p.u[unit].HP_MAX);
 
 		case 2:
-			p.u[unit].ATK = p.u[unit].ATK + magnitude;
+			p.u[unit].ATK = p.u[unit].ATK + p.con.i[itemPos].magnitude;
 
 		case 3:
-			p.u[unit].M_ATK = p.u[unit].M_ATK + magnitude;
+			p.u[unit].M_ATK = p.u[unit].M_ATK + p.con.i[itemPos].magnitude;
 
-		case 4: 
-			p.u[unit].DEF = p.u[unit].DEF + magnitude;
+		case 4:
+			p.u[unit].DEF = p.u[unit].DEF + p.con.i[itemPos] .magnitude;
 
 		case 5:
-			p.u[unit].M_DEF = p.u[unit].M_DEF + magnitude;
+			p.u[unit].M_DEF = p.u[unit].M_DEF + p.con.i[itemPos].magnitude;
 
-		case 6: 
-			p.u[unit].LUK = p.u[unit].LUK + magnitude;
+		case 6:
+			p.u[unit].LUK = p.u[unit].LUK + p.con.i[itemPos].magnitude;
 
-		case 7: 
-			p.u[unit].SP_CURR = p.u[unit].SP_CURR + magnitude;
-			p.u[unit].SP_MAX = p.u[unit].SP_MAX + magnitude;
+		case 7:
+			p.u[unit].SP_CURR = p.u[unit].SP_CURR + p.con.i[itemPos].magnitude;
+			p.u[unit].SP_MAX = p.u[unit].SP_MAX + p.con.i[itemPos].magnitude;
 
 		case 8:
-			p.u[unit].SP_CURR = min(p.u[unit].SP_CURR + magnitude, p.u[unit].SP_MAX);
+			p.u[unit].SP_CURR = min(p.u[unit].SP_CURR + p.con.i[itemPos].magnitude, p.u[unit].SP_MAX);
 
 		default:
 			return p;
 		}
-		if (uses == 0)
+		if (p.con.i[itemPos].uses == 0)
 		{
-			destroyItem();
+			p.con.i[itemPos].destroyItem();
 		}
 		return p;
 	}
 };
 
-class Convoy{
-public:
-	Item i[20];
-};
-
 Party attack(Party p, int activeUnit)
 {
-	
-	int damage = 1;
-
-	damage = p.u[activeUnit].ATK +p.u[activeUnit].tATK - p.Enemy.DEF - p.Enemy.tDEF;
-	damage = max(damage, 1);
-
-	srand(time(NULL));
-	int critNumber = rand() % 100 + 1;
-
-	if (critNumber > 90) {
-		damage = damage * 3;
-		cout << p.u[activeUnit].name << " critically strikes for " << damage << " damage!\n";
-		p.Enemy.HP_CURR = p.Enemy.HP_CURR - damage;
-		return p;
-	}
-
-	p.Enemy.HP_CURR = p.Enemy.HP_CURR - damage;
-	cout << p.u[activeUnit].name << " deals " << damage << " damage!\n";
-
+	p.Enemy = p.u[activeUnit].dealDamage(p.Enemy);
 	return p;
 }
 
@@ -806,14 +814,13 @@ Party enemyTurn(Party p){
 	{
 	case 0:
 		//attacks a random ally
-		damage = p.Enemy.ATK - p.u[randUnit].DEF;
-		damage = max(damage, 1);
 		while (p.u[randUnit].HP_CURR <= 0)
 		{
 			randUnit = rand() % 4;
 		}
-		p.u[randUnit].HP_CURR = max(p.u[randUnit].HP_CURR - damage,0);
-		cout << p.Enemy.name << " strikes " << p.u[randUnit].name << " for " << damage << " damage!\n";
+
+		p.u[randUnit] = p.Enemy.dealDamage(p.u[randUnit]);
+
 
 		return p;
 
@@ -823,11 +830,7 @@ Party enemyTurn(Party p){
 		case 0:
 			for (int i = 0; i < 4; i++) //deal MAG damage to all
 			{
-				damage = p.Enemy.M_ATK - p.u[i].M_DEF;
-				damage = max(damage, 1);
-
-				p.u[i].HP_CURR = max(p.u[i].HP_CURR - damage,0);
-				cout << p.Enemy.name << " strikes " << p.u[i].name << " for " << damage << " damage!\n";
+				p.u[i] = p.Enemy.dealDamage(p.u[i]);
 			}
 
 		case 1:
@@ -885,11 +888,44 @@ Party enemyTurn(Party p){
 	return p;
 }
 
-bool saveParty() {
+bool saveParty(Party p, string filename) {
+	ofstream wrfile(filename);
+	string content[4][16];
+
+		for (int i = 0;i < 4;i++)
+		{
+			content[i][0] = p.u[i].name;
+			content[i][1] = to_string(p.u[i].HP_CURR);
+			content[i][2] = to_string(p.u[i].HP_MAX);
+			content[i][3] = to_string(p.u[i].SP_CURR);
+			content[i][4] = to_string(p.u[i].SP_MAX);
+			content[i][5] = to_string(p.u[i].ATK);
+			content[i][6] = to_string(p.u[i].M_ATK);
+			content[i][7] = to_string(p.u[i].DEF);
+			content[i][8] = to_string(p.u[i].M_DEF);
+			content[i][9] = to_string(p.u[i].LUK);
+			content[i][10] = to_string(p.u[i].LVL);
+			content[i][11] = to_string(p.u[i].EXP);
+			content[i][12] = (p.u[i].c[0].name);
+			content[i][13] = (p.u[i].c[1].name);
+			content[i][14] = to_string(p.u[i].cExp1);
+			content[i][15] = to_string(p.u[i].cExp2);
+		}
+		
+		for (int i = 0;i < 4;i++)
+		{
+			for (int j = 0;j < 16;j++)
+			{
+				wrfile << content[i][j]<< ",";
+			}
+			wrfile << endl;
+		
+		}
+		wrfile.close();
 	return true;
 }
 
-void combatRoutine(Party AllUnits) {
+Party combatRoutine(Party AllUnits) {
 	cout << (AllUnits.Enemy.HP_CURR);
 	int currentUnit = 0;
 	bool alive= false;
@@ -946,9 +982,10 @@ void combatRoutine(Party AllUnits) {
 		}
 		AllUnits.printPartyCombatInfo();
 	}
+	return AllUnits;
 }
 
-Unit loadRandEnemy(int diffRange) {
+Unit loadCurrEnemy(int choice) {
 	Unit u[20];
 	fstream fin;
 
@@ -996,28 +1033,12 @@ Unit loadRandEnemy(int diffRange) {
 		u[i].specAi[1] = atoi(content[i][13].c_str());
 		u[i].specAi[2] = atoi(content[i][14].c_str());
 	
+	
 	}
-	srand(time(NULL));
-	int randomNumber = rand() % diffRange + 1;
-	while (1 == 1) {
-	    
-		for (int i = 0;i < 9;i++)
-		{
-			if (u[i].LVL <= diffRange) {
-				int randomNumber = rand() % 10 + 1;
-				if (randomNumber > 1)
-				{
-					fin.close();
-					return u[i];
-				}
-			}
-			
-		}
-	}
-	return u[10];
+	return u[choice];
 }
 
-Party loadParty()
+Party loadParty(string filename)
 {
 	Party p;
 	// File pointer
@@ -1027,7 +1048,7 @@ Party loadParty()
 	if (1 == 1)
 	{
 		//doing each file in its own scope.
-		fin.open("charstats.csv", ios::in);
+		fin.open(filename, ios::in);
 
 
 		vector<vector<string>> content;
@@ -1194,12 +1215,32 @@ int main() {
 
 	Party p;
 	Convoy c;
-
-	p = loadParty();
+	bool cont = true;
+	int playerIn = 0;
+	int play = 0;
+	string filename = "charstats.csv";
+	while (cont) {
+		cout << "Press 1 to load from your save, press any other key to load from a save. \n";
+		cin >> playerIn;
+		cout << "Are you sure? \n1 for yes, anything else for no.\n";
+		cin >> play;
+		if ((play == 1 ) && (playerIn  ==1))
+		{
+			filename = "save1.csv";
+			cont = false;
+		}
+		if (play == 1)
+		{
+			cont = false;
+		}
+	}
+	p = loadParty(filename);
 	c = loadConvoy();
-	p.Enemy = loadRandEnemy(p.AverageLevel());
-	combatRoutine(p);
-
+	p.Enemy = loadCurrEnemy(p.u[0].cExp1);
+	p.u[0].cExp1++;
+	//cExp1 on u[0] is progression
+	p =combatRoutine(p);
+	saveParty(p, "save1.csv");
 
 	return 0;
 
