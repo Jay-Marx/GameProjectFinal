@@ -399,8 +399,8 @@ public:
 				}
 				return Party(u[0], u[1], u[2], u[3], Enemy);
 			case 8:
-				u[activeUnit].tDEF = 5;
-				u[activeUnit].tM_DEF = 5;
+				u[activeUnit].tDEF = s.damageBonus;
+				u[activeUnit].tM_DEF = s.damageBonus;
 
 				break;
 			case 9:
@@ -458,6 +458,9 @@ public:
 					u[i].tATK = u[activeUnit].ATK;
 				}
 				return Party(u[0], u[1], u[2], u[3], Enemy);
+			case 12:
+				Enemy.tDEF = -s.damageBonus;
+				Enemy.tM_DEF = -s.damageBonus;
 		}
 		
 		
@@ -869,17 +872,12 @@ Party combatRoutine(Party AllUnits) {
 			AllUnits = playerTurn(currentUnit, AllUnits);
 			//
 		}
-	
-		//Enemy TurnS
-
-
-		
-	
-			currentUnit++;
-			if (currentUnit == 4)
-			{
+		currentUnit++;
+		if (currentUnit == 4)
+		{
 				currentUnit = 0;
-			}
+		}
+
 		AllUnits = enemyTurn(AllUnits);
 	}
 	
@@ -895,7 +893,7 @@ Party combatRoutine(Party AllUnits) {
 }
 
 Unit loadCurrEnemy(int choice) {
-	Unit u[20];
+	Unit u[10];
 	fstream fin;
 
 	fin.open("enemylist.csv", ios::in);
@@ -915,15 +913,6 @@ Unit loadCurrEnemy(int choice) {
 		}
 		content.push_back(row);
 	}
-	for (int i = 0; i < content.size();i++)
-	{
-		for (int j = 0; j < content[i].size();j++)
-		{
-
-			std::cout << content[i][j] << " ";
-		}
-	}
-
 	for (int i = 0;i < 9;i++)
 	{
 		u[i].name = content[i][0];
@@ -1000,7 +989,7 @@ Party loadParty(string filename)
 	}
 	if (2 == 2) { //doing each file in its own scope.
 		fin.open("skills.csv", ios::in);
-		Klass c[4];
+		Klass c[5];
 
 		vector<vector<string>> content;
 		vector<string> row;
@@ -1019,7 +1008,7 @@ Party loadParty(string filename)
 
 		int j = 0;
 		int k = 0;
-		for (int i = 0;i <	16;i++)
+		for (int i = 0;i <	20;i++)
 		{
 				Skill s(atoi(content[i][0].c_str()), atoi(content[i][1].c_str()), atoi(content[i][2].c_str()), atoi(content[i][3].c_str()), atoi(content[0][4].c_str()), content[i][5], content[i][6]);
 				c[k].s[j] = s;
@@ -1034,13 +1023,12 @@ Party loadParty(string filename)
 		j = 0;
 		k = 0;
 		
-		for (int i = 16; i < 20; i++)
+		for (int i = 20; i < 25; i++)
 		{ 
-
 			c[k].name = content[i][0];
 			c[k].desc = content[i][1];
 			
-			cout << c[k].desc << c[k].name <<" \n";
+
 			k++;
 		}
 		string name1;
@@ -1050,7 +1038,7 @@ Party loadParty(string filename)
 		{
 			for (int k = 0; k < 4; k++)
 			{
-				cout << i;
+		
 				name1 = p.u[i].c[0].name.c_str();
 				name2 = c[k].name.c_str();
 				name3 = p.u[i].c[1].name.c_str();
@@ -1077,7 +1065,8 @@ Party loadParty(string filename)
 int main() {
 
 	Party p;
-	
+	cout << "\n\n\n\n\n\n\n\n\n\nWelcome to a totally Coherent Plot, written by an AI!\n By: Jay Marx, Seth Wilder, Aaron Cambron, Anna Baker \n";
+
 	bool cont = true;
 	int playerIn = 0;
 	int play = 0;
@@ -1099,6 +1088,10 @@ int main() {
 	}
 	p = loadParty(filename);
 	p.Enemy = loadCurrEnemy(p.u[0].cExp1);
+	if (p.u[0].cExp1 > 5)
+	{
+		p.u[0].c[1].name = "Main Character";
+	}
 	p.u[0].cExp1++;
 	//cExp1 on u[0] is progression
 	p =combatRoutine(p);
