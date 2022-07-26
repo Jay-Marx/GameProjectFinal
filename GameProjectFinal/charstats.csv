@@ -1,5 +1,5 @@
-Worm,60,60,17,17,5,0,25,10,20,1,0,Guardian,Master At Arms,0,0
-Terra,30,30,100,100,5,20,5,15,15,1,0,Scholar,Guardian,0,0
-Shannan,110,110,50,50,25,5,15,10,1,5,0,Swordmaster,Scholar,0,0
-Olberic,80,80,40,40,5,5,5,5,50,1,0,Master At Arms,Swordmaster,0,0
+Worm,21,21,17,17,5,0,25,10,20,1,0,Guardian,Master At Arms,0,0
+Terra,11,11,100,100,5,20,5,15,15,1,0,Scholar,Guardian,0,0
+Shannan,55,55,50,50,25,5,15,10,1,5,0,Swordmaster,Scholar,0,0
+Olberic,67,67,40,40,5,5,5,5,50,1,0,Master At Arms,Swordmaster,0,0
 Name, HP_CURR, HP_M, SP_CURR, SP_M, ATK, M_ATK, DEF, M_DEF, LUK  ,LVL,EXP, Class1,Class2,Cexp1,Cexp2

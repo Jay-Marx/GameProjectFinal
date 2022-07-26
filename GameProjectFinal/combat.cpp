@@ -73,21 +73,6 @@ public:
 
 };
 
-class Condition { //pending rework of conditions
-	//may not actually do it, but basic framework is here
-public:
-	string name;
-	string desc;
-	int duration;
-	int str;
-	Condition(string n, string d, int a, int b) {
-		name = n;
-		desc = d;
-		duration = a;
-		str = b;
-	}
-}
-;
 class Unit {
 public:
 	int HP_MAX;
@@ -249,54 +234,12 @@ public:
 
 };
 
-class Item {
-public:
-	string name;
-	string desc;
-	int uses;
-	//not working atm. Might make it work, might not
-	int changeInStat;
-	//0 for HP_MAX, 1 for HP_CURR, 2 for ATK, 3 for M_ATK, 4 for DEF, 5 for M_DEF, 6 for LUK, 7 for SP_MAX, 8 for SP_CURR
-	int magnitude;
-	//how much does it change the stat by?
-	Item()
-	{
-		name = "";
-		desc = "";
-		uses = 0;
-		changeInStat = 0;
-		magnitude = 0;
-	}
-	Item(string nam, string des, int use, int stat, int mag)
-	{
-		name = nam;
-		desc = des;
-		uses = use;
-		changeInStat = stat;
-		magnitude = mag;
-	}
-	void destroyItem()
-	{
-		name = "";
-		desc = "";
-		uses = 0;
-		changeInStat = 0;
-		magnitude = 0;
-	}
-};
-
-class Convoy {
-public:
-	Item i[20];
-};
-
 class Party
 {
 public:
 	Unit u[4];
 	Unit Enemy;
-	Convoy con;
-	Convoy allItems;
+
 	
 	Party()
 	{
@@ -517,22 +460,24 @@ public:
 				return Party(u[0], u[1], u[2], u[3], Enemy);
 		}
 		
-
-			if (s.useCase == 0)
-			{ //Damages Enemies
-				if (s.damageType == 1) {
-					//deals magic damage
-					damage = u[activeUnit].M_ATK + u[activeUnit].tM_ATK + s.damageBonus  - Enemy.tM_DEF - Enemy.M_DEF;
-					damage = max(damage, 1);
-					Enemy.HP_CURR = Enemy.HP_CURR - damage;
+		
+		if (s.useCase == 0)
+		{ //Damages Enemies
+			if (s.damageType == 1) {
+				//deals magic damage
+				damage = u[activeUnit].M_ATK + u[activeUnit].tM_ATK + s.damageBonus - Enemy.tM_DEF - Enemy.M_DEF;
+				damage = max(damage, 1);
+				Enemy.HP_CURR = Enemy.HP_CURR - damage;
 			}
-				else
-				{// deals physical damage
+			else
+			{// deals physical damage
+
+				damage = u[activeUnit].ATK + u[activeUnit].tATK + s.damageBonus - Enemy.DEF - Enemy.tDEF;
+				damage = max(damage, 1);
+				Enemy.HP_CURR = Enemy.HP_CURR - damage;
+			}
+		}
 			
-					damage = u[activeUnit].ATK + u[activeUnit].tATK +s.damageBonus- Enemy.DEF - Enemy.tDEF;
-					damage = max(damage, 1);
-					Enemy.HP_CURR = Enemy.HP_CURR - damage;
-				}
 			 if (s.useCase ==1)
 				 //heals allies
 			{ 
@@ -550,11 +495,11 @@ public:
 					 {
 						 int  heal = u[activeUnit].M_ATK + u[activeUnit].tM_ATK + s.damageBonus;
 						 u[i].HP_CURR = min(u[i].HP_CURR + heal, u[i].HP_MAX);
+						 cout << u[i].name << " healed for " << heal << "!\n";
 					 }
 				 }
 			   }
 			}
-		}
 		else
 		{ // generally lack of SP
 			cout << name1 << " tried to use " << name2 << " but it failed!\n";
@@ -570,47 +515,6 @@ public:
 			rollSum += u[i].LVL;
 		}
 		return rollSum / 4;
-	}
-	Party useItem(int unit, int itemPos, Party p)
-	{
-		switch (p.con.i[itemPos].changeInStat) {
-		case 0:
-			p.u[unit].HP_MAX = p.u[unit].HP_MAX + p.con.i[itemPos].magnitude;
-			p.u[unit].HP_CURR = p.u[unit].HP_CURR + p.con.i[itemPos].magnitude;
-		case 1:
-
-			p.u[unit].HP_CURR = min(p.u[unit].HP_CURR + p.con.i[itemPos].magnitude, p.u[unit].HP_MAX);
-
-		case 2:
-			p.u[unit].ATK = p.u[unit].ATK + p.con.i[itemPos].magnitude;
-
-		case 3:
-			p.u[unit].M_ATK = p.u[unit].M_ATK + p.con.i[itemPos].magnitude;
-
-		case 4:
-			p.u[unit].DEF = p.u[unit].DEF + p.con.i[itemPos] .magnitude;
-
-		case 5:
-			p.u[unit].M_DEF = p.u[unit].M_DEF + p.con.i[itemPos].magnitude;
-
-		case 6:
-			p.u[unit].LUK = p.u[unit].LUK + p.con.i[itemPos].magnitude;
-
-		case 7:
-			p.u[unit].SP_CURR = p.u[unit].SP_CURR + p.con.i[itemPos].magnitude;
-			p.u[unit].SP_MAX = p.u[unit].SP_MAX + p.con.i[itemPos].magnitude;
-
-		case 8:
-			p.u[unit].SP_CURR = min(p.u[unit].SP_CURR + p.con.i[itemPos].magnitude, p.u[unit].SP_MAX);
-
-		default:
-			return p;
-		}
-		if (p.con.i[itemPos].uses == 0)
-		{
-			p.con.i[itemPos].destroyItem();
-		}
-		return p;
 	}
 };
 
@@ -637,17 +541,16 @@ Party skill(Party p, float sa)
 	{
 		cout << i + 1<<": " << a.c[c].s[i].name <<" \n"<< a.c[c].s[i].desc << " \n";
 	}
+	cout << "5: Back \n";
 	int pInput3 = 1;
 	scanf_s("%d", &pInput3);
+	if (pInput3 == 5)
+	{
+		return p;
+	}
 	return p.useSkill(p.u[activeUnit].c[0].s[pInput3-1], activeUnit);
 }
 
-Party item(Party p, int activeUnit)
-{
-	//item implimentation is tbd
-	return p;
-
-}
 
 Party condition(Party p, int activeUnit)
 {
@@ -655,7 +558,7 @@ Party condition(Party p, int activeUnit)
 	int damage = 1;
 	srand(time(NULL));
 	int critNumber = rand() % 100 + 1;
-	int randUnit = rand() %4;
+	int randUnit = rand() % 4;
 	switch (p.u[activeUnit].condition)
 	{
 	case 1: 
@@ -713,66 +616,84 @@ Party condition(Party p, int activeUnit)
 }
 
 Party playerTurn(int activeUnit, Party p) {
-	float pa = 0;
-	p = condition(p, activeUnit);
-	if (p.u[activeUnit].condition == 2)
-	{
-		srand(time(NULL));
-		int nomNum = rand() % 100 + 1;
-		if (nomNum > 80) { // ~ 80% chance to remove sleep.
-			p.u[activeUnit].condition = 0;
-			return p;
+	int extra = 0; //used for back functionality
+	bool finished = false;
+	while(true){
+		float pa = 0;
+		p = condition(p, activeUnit);
+		if (p.u[activeUnit].condition == 2)
+		{
+			srand(time(NULL));
+			int nomNum = rand() % 100 + 1;
+			if (nomNum > 80) { // ~ 80% chance to remove sleep.
+				p.u[activeUnit].condition = 0;
+				return p;
+			}
+			return p; //skips unit's turn.
 		}
-		return p; //skips unit's turn.
-	}
-	int turns = 1;
-	if ((p.u[activeUnit].condition == 2))
-	{ 
-		turns = p.u[activeUnit].condition;
-	}
+		int turns = 1;
+		if ((p.u[activeUnit].condition == 2))
+		{
+			turns = p.u[activeUnit].condition;
+		}
 
-	for (int i = 0; i < turns;i++)
-	{
-		Unit a = p.u[activeUnit];
-		cout << a.name << "'s Turn: \n1: Attack \n2: " << a.c[0].name<<" \n3: " << a.c[1].name<< "\n4 : Rest \n";
+		for (int i = 0; i < turns;i++)
+		{
+			Unit a = p.u[activeUnit];
+			cout << a.name << "'s Turn: \n1: Attack \n2: " << a.c[0].name << " \n3: " << a.c[1].name << "\n4: Rest \n";
 
-		int pInput6 = 0;
-		scanf_s("%d", &pInput6);
+			int pInput6 = 0;
+			scanf_s("%d", &pInput6);
 
-		switch (pInput6) {
-		case 1:
-			//basic stuff, really.
-			p = attack(p, activeUnit);
-			return p;
+			switch (pInput6) {
+			case 1:
+				//basic stuff, really.
+				p = attack(p, activeUnit);
+				return p;
 
-		case 2:
-			//skills are mostly finished!
-			p = skill(p, activeUnit);
-			return p;
+			case 2:
+				//skills are mostly finished!
+				//the float allows me to differenciate between which class to draw skills from
+				extra = p.u[activeUnit].SP_CURR;
+				p = skill(p, activeUnit); //used to determine whether or not a skill has been used.
+				if (extra != p.u[activeUnit].SP_CURR)
+				{
+					return p;
+				}
 
-		case 3:
-			//items are difficult -> maybe remove/replace?
-			pa = float(activeUnit) + .2;
-			//the float allows me to differenciate between which class to draw skills from
-			p = skill(p, pa);
-			return p;
+				break;
+			case 3:
+				//items are difficult -> maybe remove/replace?
+				pa = float(activeUnit) + .2;
+				//the float allows me to differenciate between which class to draw skills from
+				extra = 0 + p.u[activeUnit].SP_CURR;
+				p = skill(p, pa);
+				finished = extra != p.u[activeUnit].SP_CURR;
+		
+				if (extra != p.u[activeUnit].SP_CURR)
+				{
+					return p;
+				}
+				break;
+			case 4:
+				p.u[activeUnit].HP_CURR = min(p.u[activeUnit].HP_MAX, p.u[activeUnit].HP_CURR + p.u[activeUnit].LUK);
+				p.u[activeUnit].SP_CURR = min(p.u[activeUnit].SP_MAX, p.u[activeUnit].SP_CURR + p.u[activeUnit].LUK);
+				//resting restores both HP and SP by units LUK.	
+				//either replace this with items or something else
+				//pending condition rework, might implement a DEFEND that reduces damage taken
+				return p;
 
-		case 4:
-			p.u[activeUnit].HP_CURR = min(p.u[activeUnit].HP_MAX, p.u[activeUnit].HP_CURR + p.u[activeUnit].LUK);
-			p.u[activeUnit].SP_CURR = min(p.u[activeUnit].SP_MAX, p.u[activeUnit].SP_CURR + p.u[activeUnit].LUK);
-			//resting restores both HP and SP by units LUK.	
-			//either replace this with items or something else
-			//pending condition rework, might implement a DEFEND that reduces damage taken
-			return p;
+			case 5:
+				break;
 
-		default:
-			return p;
+			default:
+				return p;
+			}
 		}
 	}
-	return p;
 }
 void printStatus(int p, string n)
-{ //pending status rework
+{ //each status does different things, and here is an easy def as to which status is which effect.
 	switch (p)
 	{
 	case 0: 
@@ -809,7 +730,7 @@ Party enemyTurn(Party p){
 	int switchCase = p.Enemy.specAi[3] % 3;
 	int randomStatus = rand() % 3;
 	int target = p.getHighestHPUnitID();
-	cout << p.Enemy.specAi[3]<< "\n";
+
 	switch (switchCase)
 	{
 	case 0:
@@ -839,8 +760,8 @@ Party enemyTurn(Party p){
 			//regens 20% maxHP
 		case 2://give a party member a random status.
 			
-			cout << target;
-			cout << p.u[target].condition;
+			cout << p.Enemy.name << " gave " << p.u[target].name << " a status! \n";
+			
 			p.u[target].condition = randomStatus;
 			printStatus(randomStatus, p.u[target].name);
 			return p;
@@ -926,6 +847,7 @@ bool saveParty(Party p, string filename) {
 }
 
 Party combatRoutine(Party AllUnits) {
+	AllUnits.Enemy.printStats(AllUnits.Enemy);
 	cout << (AllUnits.Enemy.HP_CURR);
 	int currentUnit = 0;
 	bool alive= false;
@@ -936,41 +858,28 @@ Party combatRoutine(Party AllUnits) {
 			alive = true;
 		}
 	}
-	while (AllUnits.Enemy.HP_CURR > 0 || !alive)
+	while (AllUnits.Enemy.HP_CURR > 0 || alive)
 	{
-		Unit s;
+
 
 		AllUnits.printPartyCombatInfo();
 
 		if (AllUnits.u[currentUnit].HP_CURR > 0)
 		{
 			AllUnits = playerTurn(currentUnit, AllUnits);
+			//
 		}
-		AllUnits.Enemy.printStats(AllUnits.Enemy);
+	
 		//Enemy TurnS
 
 
-		if (AllUnits.u[1].name == s.name)
-		{
-			currentUnit = 0;
-		}
-		if (AllUnits.u[2].name == s.name)
-		{
-			currentUnit++;
-			if ((currentUnit == 2) && (AllUnits.u[3].name == s.name))
-			{
-				currentUnit = 0;
-			}
-
-		}
-		else
-		{
+		
+	
 			currentUnit++;
 			if (currentUnit == 4)
 			{
 				currentUnit = 0;
 			}
-		}
 		AllUnits = enemyTurn(AllUnits);
 	}
 	
@@ -1006,7 +915,7 @@ Unit loadCurrEnemy(int choice) {
 		}
 		content.push_back(row);
 	}
-	for (int i = 0;i < content.size();i++)
+	for (int i = 0; i < content.size();i++)
 	{
 		for (int j = 0; j < content[i].size();j++)
 		{
@@ -1120,6 +1029,7 @@ Party loadParty(string filename)
 					j = 0;
 					k++;
 				}
+				
 		}
 		j = 0;
 		k = 0;
@@ -1162,59 +1072,12 @@ Party loadParty(string filename)
 	return p;
 }
 
-Convoy loadConvoy()
-{
-	//unused rn.
 
-	Convoy c;
-	// File pointer
-	fstream fin;
-
-	// Open an existing file
-	if (1 == 1)
-	{
-		//doing each file in its own scope.
-		fin.open("convoy.csv", ios::in);
-
-
-		vector<vector<string>> content;
-		vector<string> row;
-		string line, word;
-
-		while (getline(fin, line))
-		{
-			row.clear();
-			stringstream str(line);
-
-			while (getline(str, word, ',')) {
-				row.push_back(word);
-			}
-			content.push_back(row);
-		}
-	
-		for (int i = 0;i<20;i++)
-		{
-			c.i[i].name = content[i][0];
-			c.i[i].desc = content[i][1];
-			c.i[i].changeInStat = atoi(content[i][2].c_str());
-			c.i[i].magnitude = atoi(content[i][3].c_str());
-			c.i[i].uses = atoi(content[i][4].c_str());
-		
-		}
-
-
-
-		fin.close();
-	}
-
-
-	return c;
-}
 
 int main() {
 
 	Party p;
-	Convoy c;
+	
 	bool cont = true;
 	int playerIn = 0;
 	int play = 0;
@@ -1235,7 +1098,6 @@ int main() {
 		}
 	}
 	p = loadParty(filename);
-	c = loadConvoy();
 	p.Enemy = loadCurrEnemy(p.u[0].cExp1);
 	p.u[0].cExp1++;
 	//cExp1 on u[0] is progression
